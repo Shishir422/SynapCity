@@ -85,6 +85,7 @@ const EmotionDebugPanel = ({ emotionHistory, detectionStats, currentEmotion, onC
 
   const latest = emotionHistory[emotionHistory.length - 1];
   const expressions = latest?.expressions || {};
+  const landmarks = latest?.landmarks || {}; // 🆕 Get landmark data
   
   const emotionColors = {
     happy: '#4CAF50',
@@ -144,6 +145,26 @@ const EmotionDebugPanel = ({ emotionHistory, detectionStats, currentEmotion, onC
           </div>
         ))}
       </Section>
+
+      {/* 🆕 LANDMARK METRICS SECTION */}
+      {Object.keys(landmarks).length > 0 && (
+        <Section>
+          <Label>🎭 LANDMARK METRICS</Label>
+          {Object.entries(landmarks).map(([metric, value]) => (
+            <div key={metric} style={{marginBottom: 6}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <span style={{textTransform: 'capitalize', fontSize: 10}}>
+                  {metric.replace(/([A-Z])/g, ' $1').trim()}
+                </span>
+                <span style={{color: '#4CAF50'}}>{(value * 100).toFixed(0)}%</span>
+              </div>
+              <ProgressBar>
+                <ProgressFill value={value * 100} color="#4CAF50" />
+              </ProgressBar>
+            </div>
+          ))}
+        </Section>
+      )}
 
       <Section>
         <Label>DETECTION STATS</Label>

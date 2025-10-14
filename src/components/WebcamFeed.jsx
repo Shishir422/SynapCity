@@ -167,10 +167,10 @@ const WebcamFeed = React.forwardRef(({ onFrameCapture, onEmotionDetected, onVide
   useEffect(() => {
     if (!isActive || !hasPermission || isMinimized) return;
 
-    // Capture frames periodically for emotion detection
+    // 🆕 INCREASED FREQUENCY: Capture frames more frequently for smoother tracking
     const interval = setInterval(() => {
       captureFrame();
-    }, 1000); // Capture every 1 second (as per requirements)
+    }, 100); // 🎯 100ms = 10 FPS (much smoother than 1 second!)
 
     return () => clearInterval(interval);
   }, [isActive, hasPermission, isMinimized]);
