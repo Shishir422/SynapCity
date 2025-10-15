@@ -9,63 +9,73 @@ import './App.css'
 
 const AppContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 20px;
+  background-color: var(--bg-color);
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 2rem;
 `;
 
 const Header = styled.header`
   text-align: center;
-  margin-bottom: 30px;
+  width: 100%;
+  max-width: 800px;
   
   h1 {
-    color: #333;
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   p {
-    color: #666;
+    color: var(--subtext-color);
     font-size: 1.1rem;
     max-width: 600px;
     margin: 0 auto;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 `;
 
 const MainContent = styled.main`
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 2rem;
   
   @media (min-width: 1024px) {
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr 320px;
   }
 `;
 
 const ChatSection = styled.section`
-  height: 600px;
+  height: 70vh;
+  display: flex;
+  flex-direction: column;
 `;
 
 const InfoPanel = styled.aside`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
   height: fit-content;
   
   h3 {
-    color: #333;
-    margin-bottom: 15px;
+    color: var(--header-text-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
     font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   ul {
@@ -75,33 +85,63 @@ const InfoPanel = styled.aside`
   }
   
   li {
-    padding: 8px 0;
-    color: #666;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 0.6rem 0;
+    color: var(--subtext-color);
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     
     &:last-child {
       border-bottom: none;
     }
     
     &::before {
-      content: "💡";
-      margin-right: 8px;
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
     }
   }
 `;
 
 const StatusIndicator = styled.div`
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: ${props => props.$active ? '#4CAF50' : '#f44336'};
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: ${props => props.$active ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'};
+  color: ${props => props.$active ? '#28a745' : '#dc3545'};
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid ${props => props.$active ? 'rgba(40, 167, 69, 0.2)' : 'rgba(220, 53, 69, 0.2)'};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.$active ? '#28a745' : '#dc3545'};
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
 `;
 
 function App() {
@@ -201,7 +241,7 @@ function App() {
         </ChatSection>
 
         <InfoPanel>
-          <h3>💡 Try asking about:</h3>
+          <h3>💡 Try Asking...</h3>
           <ul>
             <li>Explain Newton's Laws</li>
             <li>How does gravity work?</li>
@@ -211,17 +251,17 @@ function App() {
             <li>What is photosynthesis?</li>
           </ul>
           
-          <h3 style={{marginTop: '25px'}}>🎯 Features:</h3>
+          <h3 style={{marginTop: '2rem'}}>🎯 Key Features</h3>
           <ul>
-            <li>Real-time responses</li>
-            <li>Adaptive explanations</li>
-            <li>Interactive learning</li>
-            <li>Emotion-aware teaching</li>
+            <li>Real-time AI Responses</li>
+            <li>Adaptive Explanations</li>
+            <li>Interactive Learning</li>
+            <li>Emotion-Aware Teaching</li>
           </ul>
           
           {currentEmotion && (
             <>
-              <h3 style={{marginTop: '25px'}}>😊 Current Mood:</h3>
+              <h3 style={{marginTop: '2rem'}}>😊 Current Mood</h3>
               <ul>
                 <li style={{textTransform: 'capitalize'}}>{currentEmotion}</li>
               </ul>
