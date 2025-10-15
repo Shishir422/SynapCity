@@ -1,4 +1,4 @@
-# AI Tutor - Emotion-Aware Learning Platform
+# SynapCity - Emotion-Aware Learning Platform
 
 An intelligent tutoring system that adapts teaching style based on student emotions detected through webcam.
 

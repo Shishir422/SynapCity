@@ -71,7 +71,7 @@ class GeminiService {
 
       // Build context-aware prompt
       const systemPrompt = this.buildSystemPrompt(emotionalState);
-      const fullPrompt = `${systemPrompt}\n\nStudent: ${userMessage}\n\nAI Tutor:`;
+      const fullPrompt = `${systemPrompt}\n\nStudent: ${userMessage}\n\nSynapCity:`;
 
       console.log('📤 Sending request to Gemini API...');
       console.log('Using model:', this.modelNames[this.currentModelIndex]);
@@ -179,7 +179,7 @@ Start with: "Let me explain that more simply..."`;
   }
 
   buildSystemPrompt(emotionalState) {
-    let basePrompt = `You are an AI Tutor designed to help students learn effectively. You should:
+    let basePrompt = `You are SynapCity, an emotion-aware AI tutor designed to help students learn effectively. You should:
 
 - Provide clear, educational explanations
 - Break down complex topics into understandable parts
@@ -257,7 +257,7 @@ Keep responses concise but comprehensive (2-4 paragraphs maximum).`;
         console.log('Could not list models:', listError.message);
       }
       
-      const result = await this.model.generateContent("Say 'Hello, I'm your AI Tutor!' in a friendly way.");
+      const result = await this.model.generateContent("Say 'Hello, I'm SynapCity, your emotion-aware learning companion!' in a friendly way.");
       const response = await result.response;
       return { success: true, message: response.text() };
     } catch (error) {

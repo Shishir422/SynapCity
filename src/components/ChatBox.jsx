@@ -539,13 +539,13 @@ const ChatBox = React.forwardRef(({ onSendMessage, isTyping = false, className }
   return (
     <ChatContainer className={className}>
       <ChatHeader>
-        🤖 AI Tutor - Ask me anything!
+        🤖 SynapCity - Ask me anything!
       </ChatHeader>
       
       <MessagesContainer>
         {messages.length === 0 ? (
           <EmptyState>
-            <h3>Welcome to your AI Tutor! 👋</h3>
+            <h3>Welcome to SynapCity! 👋</h3>
             <p>
               Ask me about any topic you'd like to learn.<br/>
               For example: "Explain Newton's Laws" or "How does gravity work?"
@@ -562,7 +562,7 @@ const ChatBox = React.forwardRef(({ onSendMessage, isTyping = false, className }
                   }}
                 />
                 <MessageInfo isUser={message.isUser}>
-                  {message.isUser ? 'You' : 'AI Tutor'} • {formatTime(message.timestamp)}
+                  {message.isUser ? 'You' : 'SynapCity'} • {formatTime(message.timestamp)}
                 </MessageInfo>
               </div>
             </Message>
@@ -573,7 +573,7 @@ const ChatBox = React.forwardRef(({ onSendMessage, isTyping = false, className }
           <Message isUser={false}>
             <TypingIndicator>
               <span></span>
-              AI Tutor is thinking...
+              SynapCity is thinking...
             </TypingIndicator>
           </Message>
         )}

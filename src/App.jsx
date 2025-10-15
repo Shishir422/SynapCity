@@ -220,11 +220,11 @@ function App() {
         {isLoadingModels ? '📦 Loading AI Models...' :
          !modelsLoaded ? '⚠️ Models Failed' :
          apiConnected === null ? '🔄 Connecting...' : 
-         apiConnected ? '🤖 AI Tutor Online' : '⚠️ AI Offline'}
+         apiConnected ? '🤖 SynapCity Online' : '⚠️ AI Offline'}
       </StatusIndicator>
       
       <Header>
-        <h1>AI Tutor</h1>
+        <h1>SynapCity</h1>
         <p>
           Your personalized learning companion. Ask questions, explore topics, 
           and learn at your own pace with AI-powered explanations.
