@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import ChatBox from './components/ChatBox'
 import WebcamFeed from './components/WebcamFeed'
 import EmotionDebugPanel from './components/EmotionDebugPanel'
+import ThemeToggle from './components/ThemeToggle'
 import { useChatBox } from './hooks/useChatBox'
 import { useWebcam } from './hooks/useWebcam'
 import './App.css'
@@ -194,17 +195,37 @@ function App() {
 
   // Register emotion change callback for adaptive teaching
   useEffect(() => {
+    let confusedTimer = null;
+
     const handleEmotionTransition = (fromEmotion, toEmotion) => {
       console.log(`🧠 Emotion transition detected: ${fromEmotion} → ${toEmotion}`);
       
+      // Clear any existing confused timer
+      if (confusedTimer) {
+        clearTimeout(confusedTimer);
+        confusedTimer = null;
+      }
+
       // Trigger auto-clarification when student goes from focused → confused
+      // But wait 4 seconds to confirm they're still confused
       if (fromEmotion === 'focused' && toEmotion === 'confused') {
-        console.log('🎯 Focused → Confused detected! Triggering auto-clarification...');
-        handleConfusedState();
+        console.log('🎯 Focused → Confused detected! Waiting 4 seconds to confirm...');
+        confusedTimer = setTimeout(() => {
+          console.log('⏰ Still confused after 4 seconds - triggering auto-clarification...');
+          handleConfusedState();
+          confusedTimer = null;
+        }, 4000); // 4 seconds delay
       }
     };
 
     setOnEmotionChange(handleEmotionTransition);
+
+    // Cleanup timer on unmount
+    return () => {
+      if (confusedTimer) {
+        clearTimeout(confusedTimer);
+      }
+    };
   }, [setOnEmotionChange, handleConfusedState]);
 
   // Enhanced message handler with emotion context
@@ -216,6 +237,7 @@ function App() {
 
   return (
     <AppContainer>
+      <ThemeToggle />
       <StatusIndicator $active={apiConnected !== false && modelsLoaded}>
         {isLoadingModels ? '📦 Loading AI Models...' :
          !modelsLoaded ? '⚠️ Models Failed' :
@@ -249,8 +271,8 @@ function App() {
               </ul>
             </>
           )}
-          
-          <h3 style={{marginTop: currentEmotion ? '2rem' : '0'}}>�💡 Try Asking...</h3>
+
+          <h3 style={{marginTop: currentEmotion ? '2rem' : '0'}}>💡 Try Asking...</h3>
           <ul>
             <li>Explain Newton's Laws</li>
             <li>How does gravity work?</li>
