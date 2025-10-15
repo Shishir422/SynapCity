@@ -241,7 +241,16 @@ function App() {
         </ChatSection>
 
         <InfoPanel>
-          <h3>💡 Try Asking...</h3>
+          {currentEmotion && (
+            <>
+              <h3>😊 Current Mood</h3>
+              <ul>
+                <li style={{textTransform: 'capitalize'}}>{currentEmotion}</li>
+              </ul>
+            </>
+          )}
+          
+          <h3 style={{marginTop: currentEmotion ? '2rem' : '0'}}>�💡 Try Asking...</h3>
           <ul>
             <li>Explain Newton's Laws</li>
             <li>How does gravity work?</li>
@@ -258,15 +267,6 @@ function App() {
             <li>Interactive Learning</li>
             <li>Emotion-Aware Teaching</li>
           </ul>
-          
-          {currentEmotion && (
-            <>
-              <h3 style={{marginTop: '2rem'}}>😊 Current Mood</h3>
-              <ul>
-                <li style={{textTransform: 'capitalize'}}>{currentEmotion}</li>
-              </ul>
-            </>
-          )}
         </InfoPanel>
       </MainContent>
 

@@ -17,6 +17,8 @@ export const useWebcam = () => {
   const videoRef = useRef(null);
   const lastDetectionRef = useRef(null);
   const emotionChangeCallback = useRef(null);
+  const emotionStabilityBuffer = useRef([]); // Buffer to track recent emotions
+  const STABILITY_BUFFER_SIZE = 3; // Require 3 consecutive detections before changing emotion
 
   // Load face-api models on mount
   useEffect(() => {
@@ -63,12 +65,22 @@ export const useWebcam = () => {
         if (shouldUpdate) {
           console.log('✅ Emotion:', learningState, `| Confidence: ${Math.round(confidence * 100)}%`);
           
-          // Detect emotion transitions (focused → confused)
-          if (lastDetectionRef.current && lastDetectionRef.current !== learningState) {
+          // Add to stability buffer
+          emotionStabilityBuffer.current.push(learningState);
+          if (emotionStabilityBuffer.current.length > STABILITY_BUFFER_SIZE) {
+            emotionStabilityBuffer.current.shift();
+          }
+          
+          // Check if emotion is stable (same emotion detected multiple times in a row)
+          const isStableEmotion = emotionStabilityBuffer.current.length === STABILITY_BUFFER_SIZE &&
+            emotionStabilityBuffer.current.every(e => e === learningState);
+          
+          // Only trigger emotion change if emotion is stable and different from current
+          if (isStableEmotion && lastDetectionRef.current !== learningState) {
             const previousState = lastDetectionRef.current;
             const newState = learningState;
             
-            console.log(`🔄 Emotion transition: ${previousState} → ${newState}`);
+            console.log(`🔄 STABLE Emotion transition: ${previousState} → ${newState}`);
             
             // Trigger callback if registered (focused → confused triggers auto-clarification)
             if (emotionChangeCallback.current) {
@@ -76,10 +88,16 @@ export const useWebcam = () => {
             }
             
             setPreviousEmotion(previousState);
+            setCurrentEmotion(learningState);
+            lastDetectionRef.current = learningState;
+          } else if (!lastDetectionRef.current) {
+            // First detection - set initial emotion
+            setCurrentEmotion(learningState);
+            lastDetectionRef.current = learningState;
+          } else if (isStableEmotion) {
+            // Same emotion continuing - just update current
+            setCurrentEmotion(learningState);
           }
-          
-          setCurrentEmotion(learningState);
-          lastDetectionRef.current = learningState;
           
           setEmotionHistory(prev => [...prev.slice(-19), {  // Keep last 20 instead of 10
             emotion: learningState,

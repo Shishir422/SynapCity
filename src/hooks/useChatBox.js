@@ -6,7 +6,7 @@ export const useChatBox = () => {
   const [chatBoxRef, setChatBoxRef] = useState(null);
   const [apiConnected, setApiConnected] = useState(null);
   const lastClarificationTime = useRef(null);
-  const CLARIFICATION_COOLDOWN_MS = 70000; // 30 seconds cooldown
+  const CLARIFICATION_COOLDOWN_MS = 10000; // 10 seconds cooldown
 
   // Test API connection on first load
   const testApiConnection = useCallback(async () => {
