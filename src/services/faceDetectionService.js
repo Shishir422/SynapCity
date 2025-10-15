@@ -16,6 +16,11 @@ class FaceDetectionService {
     };
     this.detectionHistory = [];
     this.maxHistoryLength = 10;
+    
+    // Smoothing buffer for stable emotion detection
+    this.emotionBuffer = [];
+    this.BUFFER_SIZE = 10; // Keep last 10 emotion readings
+    this.stableEmotion = 'focused'; // Current stable emotion output
   }
 
   async loadModels() {
@@ -60,13 +65,21 @@ class FaceDetectionService {
       const landmarks = detection.landmarks;
       const rawMetrics = this.analyzeLandmarks(landmarks);
       const smoothedMetrics = this.smoothMetrics(rawMetrics);
-      const learningState = this.mapToLearningState(expressions, smoothedMetrics);
-      const confidence = this.calculateConfidence(expressions, smoothedMetrics, learningState);
-      this.logDetection(expressions, smoothedMetrics, learningState, confidence);
+      const instantEmotion = this.mapToLearningState(expressions, smoothedMetrics);
+      
+      // Add to smoothing buffer
+      this.addToEmotionBuffer(instantEmotion);
+      
+      // Get stable emotion from buffer (most frequent)
+      const stableEmotion = this.getStableEmotion();
+      
+      const confidence = this.calculateConfidence(expressions, smoothedMetrics, stableEmotion);
+      this.logDetection(expressions, smoothedMetrics, instantEmotion, stableEmotion, confidence);
       const result = {
         expressions,
         landmarks: smoothedMetrics,
-        learningState,
+        learningState: stableEmotion, // Use stable emotion instead of instant
+        instantEmotion, // Also include instant for debugging
         confidence,
         faceDetected: true,
         timestamp: new Date()
@@ -197,7 +210,7 @@ class FaceDetectionService {
     return Math.max(0.4, Math.min(confidence, 1.0));
   }
 
-  logDetection(expressions, landmarks, state, confidence) {
+  logDetection(expressions, landmarks, instantEmotion, stableEmotion, confidence) {
     console.log('============ Emotion Detection ============');
     const sorted = Object.entries(expressions).sort(([, a], [, b]) => b - a).slice(0, 4);
     console.log('Raw Expressions:');
@@ -205,9 +218,53 @@ class FaceDetectionService {
     console.log('Landmarks:');
     console.log(`  Eyes: ${(landmarks.eyeOpenness*100).toFixed(0)}%`);
     console.log(`  Smile: ${(landmarks.smileWidth*100).toFixed(0)}%`);
-    console.log(`State: ${state.toUpperCase()}`);
+    console.log(`Instant: ${instantEmotion.toUpperCase()}`);
+    console.log(`Stable (buffered): ${stableEmotion.toUpperCase()}`);
+    console.log(`Buffer: [${this.emotionBuffer.join(', ')}]`);
     console.log(`Confidence: ${(confidence*100).toFixed(0)}%`);
     console.log('===========================================');
+  }
+
+  /**
+   * Add emotion to smoothing buffer
+   */
+  addToEmotionBuffer(emotion) {
+    this.emotionBuffer.push(emotion);
+    // Remove oldest if buffer exceeds size
+    if (this.emotionBuffer.length > this.BUFFER_SIZE) {
+      this.emotionBuffer.shift();
+    }
+  }
+
+  /**
+   * Get most frequent emotion from buffer (rolling average)
+   * Returns the emotion that appears most often in recent history
+   */
+  getStableEmotion() {
+    if (this.emotionBuffer.length === 0) {
+      return this.stableEmotion; // Return last stable emotion if buffer empty
+    }
+
+    // Count frequency of each emotion in buffer
+    const frequency = {};
+    this.emotionBuffer.forEach(emotion => {
+      frequency[emotion] = (frequency[emotion] || 0) + 1;
+    });
+
+    // Find emotion with highest frequency
+    let maxCount = 0;
+    let mostFrequent = this.stableEmotion;
+    
+    for (const [emotion, count] of Object.entries(frequency)) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostFrequent = emotion;
+      }
+    }
+
+    // Update stable emotion
+    this.stableEmotion = mostFrequent;
+    return mostFrequent;
   }
 
   addToHistory(result) {
@@ -257,6 +314,7 @@ class FaceDetectionService {
       clearInterval(this.detectionInterval);
       this.detectionInterval = null;
       this.eyeClosureStartTime = null;
+      this.emotionBuffer = []; // Clear buffer on stop
       console.log('Stopped detection');
     }
   }
@@ -272,6 +330,7 @@ class FaceDetectionService {
   clearHistory() {
     this.detectionHistory = [];
     this.eyeClosureStartTime = null;
+    this.emotionBuffer = []; // Clear buffer when clearing history
   }
 }
 

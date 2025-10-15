@@ -28,6 +28,7 @@ dist-ssr
 *.sln
 *.sw?
 
+
 SECURITY.md
 EMOTION_ACCURACY.md
 WEBCAM_DOCS.md
