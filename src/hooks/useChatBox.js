@@ -1,10 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import geminiService from '../services/geminiService';
 
 export const useChatBox = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [chatBoxRef, setChatBoxRef] = useState(null);
   const [apiConnected, setApiConnected] = useState(null);
+  const lastClarificationTime = useRef(null);
+  const CLARIFICATION_COOLDOWN_MS = 70000; // 30 seconds cooldown
 
   // Test API connection on first load
   const testApiConnection = useCallback(async () => {
@@ -77,12 +79,47 @@ export const useChatBox = () => {
     }
   }, [chatBoxRef]);
 
+  const handleConfusedState = useCallback(async () => {
+    // Don't interrupt if AI is already typing
+    if (isTyping) {
+      console.log('⚠️ AI is typing, skipping auto-clarification');
+      return;
+    }
+
+    // Check cooldown to prevent continuous clarifications
+    const now = Date.now();
+    if (lastClarificationTime.current) {
+      const timeSinceLastClarification = now - lastClarificationTime.current;
+      if (timeSinceLastClarification < CLARIFICATION_COOLDOWN_MS) {
+        const remainingSeconds = Math.ceil((CLARIFICATION_COOLDOWN_MS - timeSinceLastClarification) / 1000);
+        console.log(`⏳ Cooldown active - ${remainingSeconds}s remaining before next auto-clarification`);
+        return;
+      }
+    }
+
+    console.log('🔄 Student confused - generating simplified explanation...');
+    
+    try {
+      const simplifiedText = await geminiService.generateSimplifiedExplanation();
+      
+      if (simplifiedText && chatBoxRef?.addAIResponse) {
+        const autoClarificationMessage = `🔄 **Auto-Clarification** _(I noticed you looked confused)_\n\n${simplifiedText}`;
+        chatBoxRef.addAIResponse(autoClarificationMessage);
+        lastClarificationTime.current = now;
+        console.log('✅ Auto-clarification sent (30s cooldown started)');
+      }
+    } catch (error) {
+      console.error('❌ Error generating auto-clarification:', error);
+    }
+  }, [isTyping, chatBoxRef]);
+
   return {
     isTyping,
     handleSendMessage,
     addAIResponse,
     setChatBoxRef,
     clearConversation,
+    handleConfusedState,
     apiConnected,
     testApiConnection
   };

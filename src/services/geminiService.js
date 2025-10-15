@@ -113,6 +113,71 @@ class GeminiService {
     }
   }
 
+  // Get the last user question for re-explanation
+  getLastUserQuestion() {
+    if (this.conversationHistory.length === 0) {
+      return null;
+    }
+    const lastEntry = this.conversationHistory[this.conversationHistory.length - 1];
+    return {
+      question: lastEntry.user,
+      answer: lastEntry.ai
+    };
+  }
+
+  // Generate simplified explanation when student becomes confused
+  async generateSimplifiedExplanation() {
+    try {
+      if (!this.model) {
+        return null;
+      }
+
+      const lastQA = this.getLastUserQuestion();
+      if (!lastQA) {
+        console.log('📭 No previous conversation to simplify');
+        return null;
+      }
+
+      console.log('🔄 Student confused! Simplifying previous answer...');
+      console.log('📝 Previous question:', lastQA.question);
+
+      const simplifyPrompt = `The student just looked confused after reading your explanation.
+
+Their question was: "${lastQA.question}"
+
+Your previous answer was: "${lastQA.answer}"
+
+Please provide a MUCH SIMPLER explanation:
+- Use only 2-3 SHORT sentences
+- Include ONE easy real-world example
+- Use simple everyday language (no technical terms)
+- Focus ONLY on the main idea
+
+Start with: "Let me explain that more simply..."`;
+
+      console.log('📤 Generating simplified explanation...');
+      
+      const result = await this.model.generateContent(simplifyPrompt);
+      const response = await result.response;
+      const text = response.text();
+
+      console.log('✅ Simplified explanation ready');
+
+      // Add to history with marker
+      this.conversationHistory.push({
+        user: '[AUTO-CLARIFICATION]',
+        ai: text,
+        emotion: 'confused',
+        timestamp: new Date()
+      });
+
+      return text;
+    } catch (error) {
+      console.error('❌ Error generating simplified explanation:', error);
+      return null;
+    }
+  }
+
   buildSystemPrompt(emotionalState) {
     let basePrompt = `You are an AI Tutor designed to help students learn effectively. You should:
 

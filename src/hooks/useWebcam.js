@@ -4,6 +4,7 @@ import faceDetectionService from '../services/faceDetectionService';
 export const useWebcam = () => {
   const [isWebcamActive, setIsWebcamActive] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState(null);
+  const [previousEmotion, setPreviousEmotion] = useState(null);
   const [emotionHistory, setEmotionHistory] = useState([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -15,6 +16,7 @@ export const useWebcam = () => {
   const webcamRef = useRef(null);
   const videoRef = useRef(null);
   const lastDetectionRef = useRef(null);
+  const emotionChangeCallback = useRef(null);
 
   // Load face-api models on mount
   useEffect(() => {
@@ -60,6 +62,21 @@ export const useWebcam = () => {
         
         if (shouldUpdate) {
           console.log('✅ Emotion:', learningState, `| Confidence: ${Math.round(confidence * 100)}%`);
+          
+          // Detect emotion transitions (focused → confused)
+          if (lastDetectionRef.current && lastDetectionRef.current !== learningState) {
+            const previousState = lastDetectionRef.current;
+            const newState = learningState;
+            
+            console.log(`🔄 Emotion transition: ${previousState} → ${newState}`);
+            
+            // Trigger callback if registered (focused → confused triggers auto-clarification)
+            if (emotionChangeCallback.current) {
+              emotionChangeCallback.current(previousState, newState);
+            }
+            
+            setPreviousEmotion(previousState);
+          }
           
           setCurrentEmotion(learningState);
           lastDetectionRef.current = learningState;
@@ -142,9 +159,14 @@ export const useWebcam = () => {
     setIsWebcamActive(prev => !prev);
   }, []);
 
+  const setOnEmotionChange = useCallback((callback) => {
+    emotionChangeCallback.current = callback;
+  }, []);
+
   return {
     isWebcamActive,
     currentEmotion,
+    previousEmotion,
     emotionHistory,
     modelsLoaded,
     isLoadingModels,
@@ -155,6 +177,7 @@ export const useWebcam = () => {
     setWebcamRef,
     setVideoRef,
     toggleWebcam,
+    setOnEmotionChange,
     webcamRef,
     videoRef
   };

@@ -108,18 +108,21 @@ function App() {
   const { 
     isTyping, 
     handleSendMessage, 
-    setChatBoxRef, 
+    setChatBoxRef,
+    handleConfusedState,
     apiConnected, 
     testApiConnection 
   } = useChatBox();
   
   const {
     currentEmotion,
+    previousEmotion,
     handleFrameCapture,
     handleEmotionDetected,
     getMostFrequentEmotion,
     setWebcamRef,
     setVideoRef,
+    setOnEmotionChange,
     modelsLoaded,
     isLoadingModels,
     emotionHistory,
@@ -148,6 +151,21 @@ function App() {
     // Test API connection when app loads
     testApiConnection();
   }, [testApiConnection]);
+
+  // Register emotion change callback for adaptive teaching
+  useEffect(() => {
+    const handleEmotionTransition = (fromEmotion, toEmotion) => {
+      console.log(`🧠 Emotion transition detected: ${fromEmotion} → ${toEmotion}`);
+      
+      // Trigger auto-clarification when student goes from focused → confused
+      if (fromEmotion === 'focused' && toEmotion === 'confused') {
+        console.log('🎯 Focused → Confused detected! Triggering auto-clarification...');
+        handleConfusedState();
+      }
+    };
+
+    setOnEmotionChange(handleEmotionTransition);
+  }, [setOnEmotionChange, handleConfusedState]);
 
   // Enhanced message handler with emotion context
   const handleMessageWithEmotion = (message) => {
